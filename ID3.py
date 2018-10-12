@@ -110,6 +110,53 @@ def prune(node, examples):
   Takes in a trained tree and a validation set of examples.  Prunes nodes in order
   to improve accuracy on the validation data; the precise pruning strategy is up to you.
   '''
+  nodestack = []
+  nodestack.append(node)
+  while not nodestack:
+    currentNode = nodestack[-1]
+    isLeaf = 1
+    for key, childNode in currentNode.children.items():
+      if childNode.label is None:
+        childNode.parent = currentNode
+        childNode.pathFromParent = key
+        nodestack.append(childNode)
+        isLeaf = 0
+    if isLeaf:
+      nodestack.pop()
+      currentAccuracy = test(node, examples)
+      parentNode = None
+      if currentNode.parent:
+        parentNode = currentNode.parent
+        for key, value in parentNode.children.items():
+          if value is currentNode:
+            pathToCurrentNode = traceBack(currentNode)
+            examplesLeftAtNode = filterExampleFromPath(pathToCurrentNode)
+            parentNode.children[key] = MODE(examplesLeftAtNode)
+        prunedAccuracy = test(node, examples)
+      else:
+        prunedAccuracy = test(Node(MODE(examples)), examples)
+      if currentAccuracy <= prunedAccuracy:
+        continue
+      if not parentNode:
+        return Node(MODE(examples))
+    
+
+def traceBack(node):
+  nodePath = []
+  nodePath.append(node.pathFromParent)
+  if node.parent is None:
+    return nodePath
+  return traceBack(node.parent)
+
+def filterExampleFromPath(node, nodePath, examples):
+    if not nodePath:
+      return filteredExamples
+    toGo = nodePath.pop()
+    for example in examples:
+      if example[node.name] != toGo:
+        examples.remove(example)
+    return(node.children[toGo], nodePath, examples)
+
 
 def test(node, examples):
   '''
