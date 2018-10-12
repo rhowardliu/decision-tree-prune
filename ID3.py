@@ -84,8 +84,6 @@ def calEntropy(countA, countB):
   entropyQ = - q * math.log(q,2) if q else 0
   return entropyP + entropyQ
 
-def EntropyOfSplit(trueList, falseList, undefinedList):
-  total
 
 
 def chooseAttribute(examples):
@@ -118,6 +116,11 @@ def test(node, examples):
   Takes in a trained tree and a test set of examples.  Returns the accuracy (fraction
   of examples the tree classifies correctly).
   '''
+  correctCount = 0
+  for example in examples:
+    if example['Class'] == evaluate(node, example):
+      correctCount += 1
+  return correctCount/len(examples)
 
 
 def evaluate(node, example):
@@ -125,7 +128,7 @@ def evaluate(node, example):
   Takes in a tree and one example.  Returns the Class value that the tree
   assigns to the example.
   '''
-  if node.label:
+  if node.label is not None:
     return node.label
   else:
     result = example[node.name]
