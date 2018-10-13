@@ -135,13 +135,14 @@ def prune(node, examples):
   nodestack.append(node)
   while nodestack:
     currentNode = nodestack[-1]
+    print('accessing node ', currentNode.name)
     isLeaf = 1
     for key, childNode in currentNode.children.items():
-      print('accessing node ', currentNode.name)
-      if childNode.label is None:
+      if childNode.label is None :
         childNode.parent = currentNode
         childNode.pathFromParent = key
-        nodestack.append(childNode)
+        if not currentNode.isVisited:
+          nodestack.append(childNode)
         isLeaf = 0
         print('oops not a leaf')
     if isLeaf:
@@ -166,6 +167,9 @@ def prune(node, examples):
       if parentNode:
         parentNode.children[currentNode.pathFromParent] = currentNode
       print('keeping', currentNode.name)
+    elif currentNode.isVisited:
+      nodestack.pop()
+    currentNode.isVisited = 1          
   return node
     
 
@@ -186,13 +190,13 @@ def filterExampleFromPath(node, nodePath, examples):
   Run the examples through the path to determine which examples are left in the leaf of the tree
   Returns the truncated list of examples
   '''
-    if not nodePath:
-      return examples
-    toGo = nodePath.pop()
-    for example in examples:
-      if example[node.name] != toGo:
-        examples.remove(example)
-    return filterExampleFromPath(node.children[toGo], nodePath, examples)
+  if not nodePath:
+    return examples
+  toGo = nodePath.pop()
+  for example in examples:
+    if example[node.name] != toGo:
+      examples.remove(example)
+  return filterExampleFromPath(node.children[toGo], nodePath, examples)
 
 
 def test(node, examples):

@@ -4,6 +4,7 @@ class Node:
     self.children = {}
 	# you may want to add additional fields here...
     self.name = None
+    self.isVisited = None
     self.parent = None
     self.pathFromParent = None
 
