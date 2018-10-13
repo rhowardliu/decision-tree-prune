@@ -6,3 +6,6 @@ class Node:
     self.name = None
     self.parent = None
     self.pathFromParent = None
+
+  # def __eq__(self, other):
+  #   return self.__dict__ == other.__dict__

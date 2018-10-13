@@ -100,7 +100,7 @@ def chooseAttribute(examples):
 
     entropy = p * entropyOfABranch(trueList) + q * entropyOfABranch(falseList) + r * entropyOfABranch(undefinedList)
     print('entropy of splitting ', attribute, ' is ', entropy)
-    if ( not bestEntropy ) or (entropy < bestEntropy):
+    if ( bestEntropy is None ) or (entropy < bestEntropy):
       bestEntropy = entropy
       bestAttribute = attribute
   return bestAttribute
@@ -112,15 +112,17 @@ def prune(node, examples):
   '''
   nodestack = []
   nodestack.append(node)
-  while not nodestack:
+  while nodestack:
     currentNode = nodestack[-1]
     isLeaf = 1
     for key, childNode in currentNode.children.items():
+      print('accessing node ', currentNode.name)
       if childNode.label is None:
         childNode.parent = currentNode
         childNode.pathFromParent = key
         nodestack.append(childNode)
         isLeaf = 0
+        print('oops not a leaf')
     if isLeaf:
       nodestack.pop()
       currentAccuracy = test(node, examples)
@@ -130,32 +132,36 @@ def prune(node, examples):
         for key, value in parentNode.children.items():
           if value is currentNode:
             pathToCurrentNode = traceBack(currentNode)
-            examplesLeftAtNode = filterExampleFromPath(pathToCurrentNode)
-            parentNode.children[key] = MODE(examplesLeftAtNode)
+            examplesLeftAtNode = filterExampleFromPath(node, pathToCurrentNode, list(examples))
+            parentNode.children[key] = Node(MODE(examplesLeftAtNode))
         prunedAccuracy = test(node, examples)
       else:
         prunedAccuracy = test(Node(MODE(examples)), examples)
       if currentAccuracy <= prunedAccuracy:
+        if not parentNode:
+          return Node(MODE(examples))
+        print('pruned', currentNode.name)
         continue
-      if not parentNode:
-        return Node(MODE(examples))
+      if parentNode:
+        parentNode.children[currentNode.pathFromParent] = currentNode
+      print('keeping', currentNode.name)
+  return node
     
 
-def traceBack(node):
-  nodePath = []
-  nodePath.append(node.pathFromParent)
+def traceBack(node, nodePath = []):
   if node.parent is None:
     return nodePath
-  return traceBack(node.parent)
+  nodePath.append(node.pathFromParent)
+  return traceBack(node.parent, nodePath)
 
 def filterExampleFromPath(node, nodePath, examples):
     if not nodePath:
-      return filteredExamples
+      return examples
     toGo = nodePath.pop()
     for example in examples:
       if example[node.name] != toGo:
         examples.remove(example)
-    return(node.children[toGo], nodePath, examples)
+    return filterExampleFromPath(node.children[toGo], nodePath, examples)
 
 
 def test(node, examples):
