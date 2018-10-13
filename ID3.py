@@ -26,6 +26,10 @@ def ID3(examples, default):
     return myTree
 
 def checkSameClassification(examples):
+  '''
+  Takes in an array of examples and checks whether all of them have the same classification.
+  Returns boolean True/False
+  '''
   myClass = examples[0]['Class']
   for example in examples:
     if example['Class'] != myClass:
@@ -33,6 +37,10 @@ def checkSameClassification(examples):
   return True
 
 def MODE(examples):
+  '''
+  Takes in an array of examples and find the MODE of their classification.
+  Returns integer
+  '''
   classCountList = {}
   for example in examples:
     if example['Class'] not in classCountList.keys():
@@ -42,12 +50,17 @@ def MODE(examples):
   modeValue = None
   for classValue, classCount in classCountList.items():
     if classCount > modeCount:
-      modeCount = classCount
+      modeCount = classCount                  
       modeValue = classValue
   return modeValue
 
 
 def separateExamples(examples, attribute):
+  '''
+  Takes in an array of examples and an attribute to separate these examples.
+  The examples are split based on the value of attribute chosen.
+  Returns a dictionary with key:value pair of attribute value: list of examples with the given attribute value.
+  '''  
   setOfOutcome = set()
   seperatedExamples = {}
   for example in examples:
@@ -58,6 +71,10 @@ def separateExamples(examples, attribute):
 
 
 def entropyOfABranch(examples):
+  '''
+  Takes in an array of examples and find the entropy of these examples based on their classification.
+  Returns a floating number
+  '''  
   if not examples:
     return 0
   countOfClasses = {}
@@ -69,6 +86,11 @@ def entropyOfABranch(examples):
 
 
 def calEntropy(listOfCounts):
+  '''
+  Takes in a list that contains the number of each classification.
+  Calculates the entropy and returns it
+  Returns a floating number.
+  '''  
   totalCount = 0
   entropy = 0
   for count in listOfCounts:
@@ -81,6 +103,10 @@ def calEntropy(listOfCounts):
 
 
 def chooseAttribute(examples):
+  '''
+  Takes in an array of examples and find the best attribute to split them based on information gain.
+  Returns string
+  '''  
   bestEntropy = None
   bestAttribute = None
   for attribute in examples[0].keys():
@@ -144,12 +170,22 @@ def prune(node, examples):
     
 
 def traceBack(node, nodePath = []):
+  '''
+  Takes in a leaf of a tree and find the path to reach the root.
+  Each vertice of the path is labelled by the attribute value
+  Returns a list containing the path from leaf to root
+  '''  
   if node.parent is None:
     return nodePath
   nodePath.append(node.pathFromParent)
   return traceBack(node.parent, nodePath)
 
 def filterExampleFromPath(node, nodePath, examples):
+  '''
+  Takes in a tree, the path to a leaf, and a set of examples
+  Run the examples through the path to determine which examples are left in the leaf of the tree
+  Returns the truncated list of examples
+  '''
     if not nodePath:
       return examples
     toGo = nodePath.pop()
