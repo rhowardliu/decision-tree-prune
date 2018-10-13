@@ -18,12 +18,11 @@ def ID3(examples, default):
     print('best attribute is ', bestAttribute)
     myTree = Node()
     myTree.name = bestAttribute
-    seperatedLists = separateExamples(examples, bestAttribute)
-    for exampleList in seperatedLists:
-      if exampleList:
-        value = exampleList[0][bestAttribute]
+    dictOfExamples = separateExamples(examples, bestAttribute)
+    for key, exampleList in dictOfExamples.items():
+        print('now looking at {}, {}'.format(key, exampleList))
         subtree = ID3(exampleList, MODE(examples))
-        myTree.children[value] = subtree
+        myTree.children[key] = subtree
     return myTree
 
 def checkSameClassification(examples):
@@ -36,11 +35,9 @@ def checkSameClassification(examples):
 def MODE(examples):
   classCountList = {}
   for example in examples:
-    exampleClassValue = example['Class']
-    if exampleClassValue not in classCountList.keys():
-      classCountList[exampleClassValue] = 1
-    else:
-      classCountList[exampleClassValue] += 1
+    if example['Class'] not in classCountList.keys():
+      classCountList[example['Class']] = 0
+    classCountList[example['Class']] += 1
   modeCount = 0
   modeValue = None
   for classValue, classCount in classCountList.items():
@@ -51,39 +48,36 @@ def MODE(examples):
 
 
 def separateExamples(examples, attribute):
-  trueList = []
-  falseList = []
-  undefinedList = []
+  setOfOutcome = set()
+  seperatedExamples = {}
   for example in examples:
-    if example[attribute] == '?':
-      undefinedList.append(example)
-    elif example[attribute]:
-      trueList.append(example)
-    else:
-      falseList.append(example)
-  return [trueList, falseList, undefinedList]
+    if example[attribute] not in seperatedExamples.keys():
+      seperatedExamples[example[attribute]] = []
+    seperatedExamples[example[attribute]].append(example)
+  return seperatedExamples
+
 
 def entropyOfABranch(examples):
   if not examples:
     return 0
-  countA = 0
-  countB = 0
-  exampleClass = examples[0]['Class']
+  countOfClasses = {}
   for example in examples:
-    if example['Class'] == exampleClass:
-      countA += 1
-    else:
-      countB += 1
-  return calEntropy(countA, countB)
+    if example['Class'] not in countOfClasses.keys():
+      countOfClasses[example['Class']] = 0
+    countOfClasses[example['Class']] += 1
+  return calEntropy(list(countOfClasses.values()))
 
 
-def calEntropy(countA, countB):
-  p = countA / (countA + countB)
-  q = countB / (countA + countB) 
-  entropyP = - p * math.log(p,2) if p else 0
-  entropyQ = - q * math.log(q,2) if q else 0
-  return entropyP + entropyQ
-
+def calEntropy(listOfCounts):
+  totalCount = 0
+  entropy = 0
+  for count in listOfCounts:
+    totalCount += count
+  for count in listOfCounts:
+    p = count / totalCount
+    entropyP = - p * math.log(p,2) if p else 0
+    entropy += entropyP
+  return entropy
 
 
 def chooseAttribute(examples):
@@ -92,13 +86,14 @@ def chooseAttribute(examples):
   for attribute in examples[0].keys():
     if attribute == 'Class':
       continue
-    [trueList, falseList, undefinedList] = separateExamples(examples, attribute)
+    dictOfExamples = separateExamples(examples, attribute)
+    if len(dictOfExamples) <= 1:
+      continue
+    entropy = 0
+    for value in dictOfExamples.values():
+      p = len(value) / len(examples)
+      entropy += entropyOfABranch(value)
 
-    p = len(trueList) / len(examples)
-    q = len(falseList) / len(examples)
-    r = len(undefinedList) / len(examples)
-
-    entropy = p * entropyOfABranch(trueList) + q * entropyOfABranch(falseList) + r * entropyOfABranch(undefinedList)
     print('entropy of splitting ', attribute, ' is ', entropy)
     if ( bestEntropy is None ) or (entropy < bestEntropy):
       bestEntropy = entropy

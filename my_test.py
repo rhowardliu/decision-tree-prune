@@ -16,27 +16,26 @@ class ID3test(unittest.TestCase):
 
   def test_separateExamples(self):
     examples = [dict(a=1, b=1, Class=1), dict(a=1, b=0, Class=1), dict(a=1, b=0, Class=0),]
-    separatedExamples = [[dict(a=1, b=1, Class=1)], [dict(a=1, b=0, Class=1), dict(a=1, b=0, Class=0)], []]
+    separatedExamples = {1:[dict(a=1, b=1, Class=1)], 0:[dict(a=1, b=0, Class=1), dict(a=1, b=0, Class=0)],}
     self.assertEqual(separateExamples(examples, 'b'), separatedExamples)
 
   def test_separateExamplesWithUndefined(self):
     examples = [dict(a=1, b='?', Class=1), dict(a=1, b=0, Class=1), dict(a=1, b=0, Class=0),]
-    separatedExamples = [[], [dict(a=1, b=0, Class=1), dict(a=1, b=0, Class=0)], [dict(a=1, b='?', Class=1)]]
+    separatedExamples = { 0:[dict(a=1, b=0, Class=1), dict(a=1, b=0, Class=0)], '?':[dict(a=1, b='?', Class=1)]}
     self.assertEqual(separateExamples(examples, 'b'), separatedExamples)
 
   def test_calEntropy(self):
-    countA = 5
-    countB = 10
+    counts = [5, 10]
     entropy = 0.9182958
-    self.assertEqual(round(calEntropy(countA, countB), 7), entropy)
+    self.assertEqual(round(calEntropy(counts), 7), entropy)
 
   def test_calEntropyWithZero(self):
-    countA = 0
-    countB = 10
+    counts = [0, 10]    
     entropy = 0
-    self.assertEqual(round(calEntropy(countA, countB), 7), entropy)
+    self.assertEqual(round(calEntropy(counts), 7), entropy)
 
   def test_entropyOfABranch(self):
+    print('entropy of a branch')
     examples = [dict(a=1, b='?', Class=1), dict(a=1, b=0, Class=1), dict(a=1, b=0, Class=0),]
     entropy = 0.9182958
     self.assertEqual(round(entropyOfABranch(examples), 7), entropy)
