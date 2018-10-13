@@ -95,3 +95,5 @@ def testPruningOnHouseData(inFile):
 if __name__ == '__main__':
   testID3AndEvaluate()
   testID3AndTest()
+  testPruning()
+  # testPruningOnHouseData('house_votes_84.data')
