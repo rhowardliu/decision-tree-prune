@@ -1,7 +1,7 @@
 from node import Node
 import math
 
-def ID3(examples, default):
+def ID3(examples, default, attributesChosen = []):
   '''
   Takes in an array of examples, and returns a tree (an instance of Node) 
   trained on the examples.  Each example is a dictionary of attribute:value pairs,
@@ -11,17 +11,15 @@ def ID3(examples, default):
   if not examples:
     return Node(default)
   elif checkSameClassification(examples) or not chooseAttribute(examples):
-    print('same classification/ all trivial!')
     return Node(MODE(examples))
   else:
     bestAttribute = chooseAttribute(examples)
-    print('best attribute is ', bestAttribute)
+    attributesChosen.append(bestAttribute)
     myTree = Node()
     myTree.name = bestAttribute
     dictOfExamples = separateExamples(examples, bestAttribute)
     for key, exampleList in dictOfExamples.items():
-        print('now looking at {}, {}'.format(key, exampleList))
-        subtree = ID3(exampleList, MODE(examples))
+        subtree = ID3(exampleList, MODE(examples), attributesChosen)
         myTree.children[key] = subtree
     return myTree
 
@@ -39,7 +37,7 @@ def checkSameClassification(examples):
 def MODE(examples):
   '''
   Takes in an array of examples and find the MODE of their classification.
-  Returns integer
+  Returns string
   '''
   classCountList = {}
   for example in examples:
@@ -102,7 +100,7 @@ def calEntropy(listOfCounts):
   return entropy
 
 
-def chooseAttribute(examples):
+def chooseAttribute(examples, attributesChosen = []):
   '''
   Takes in an array of examples and find the best attribute to split them based on information gain.
   Returns string
@@ -112,6 +110,8 @@ def chooseAttribute(examples):
   for attribute in examples[0].keys():
     if attribute == 'Class':
       continue
+    if attribute in attributesChosen:
+      continue
     dictOfExamples = separateExamples(examples, attribute)
     if len(dictOfExamples) <= 1:
       continue
@@ -120,7 +120,6 @@ def chooseAttribute(examples):
       p = len(value) / len(examples)
       entropy += entropyOfABranch(value)
 
-    print('entropy of splitting ', attribute, ' is ', entropy)
     if ( bestEntropy is None ) or (entropy < bestEntropy):
       bestEntropy = entropy
       bestAttribute = attribute
@@ -135,16 +134,14 @@ def prune(node, examples):
   nodestack.append(node)
   while nodestack:
     currentNode = nodestack[-1]
-    print('accessing node ', currentNode.name)
     isLeaf = 1
     for key, childNode in currentNode.children.items():
-      if childNode.label is None :
+      if childNode.label is None:
         childNode.parent = currentNode
         childNode.pathFromParent = key
         if not currentNode.isVisited:
           nodestack.append(childNode)
         isLeaf = 0
-        print('oops not a leaf')
     if isLeaf:
       nodestack.pop()
       currentAccuracy = test(node, examples)
@@ -155,6 +152,9 @@ def prune(node, examples):
           if value is currentNode:
             pathToCurrentNode = traceBack(currentNode)
             examplesLeftAtNode = filterExampleFromPath(node, pathToCurrentNode, list(examples))
+            if not examplesLeftAtNode:
+              currentNode.isVisited = 1
+              continue
             parentNode.children[key] = Node(MODE(examplesLeftAtNode))
         prunedAccuracy = test(node, examples)
       else:
@@ -162,11 +162,9 @@ def prune(node, examples):
       if currentAccuracy <= prunedAccuracy:
         if not parentNode:
           return Node(MODE(examples))
-        print('pruned', currentNode.name)
         continue
       if parentNode:
         parentNode.children[currentNode.pathFromParent] = currentNode
-      print('keeping', currentNode.name)
     elif currentNode.isVisited:
       nodestack.pop()
     currentNode.isVisited = 1          
@@ -213,12 +211,14 @@ def test(node, examples):
 
 def evaluate(node, example):
   '''
-  Takes in a tree and one example.  Returns the Class value that the tree
-  assigns to the example.
+  Takes in a tree and one example.  Returns the Classification that the tree
+  assigns based on the attributes of the example.
   '''
   if node.label is not None:
     return node.label
   else:
     result = example[node.name]
+    if result not in node.children.keys():
+      return None
     subtree = node.children[result]
     return evaluate(subtree, example)

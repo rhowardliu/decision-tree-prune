@@ -57,6 +57,16 @@ class ID3test(unittest.TestCase):
     node.children = {1:nodeClass1, 0:nodeClass0}
     self.assertEqual(ID3(examples, 1), node)
 
+  def test_ID3_2(self):
+  data = [dict(a=1, b=0, Class=2), dict(a=1, b=1, Class=1),
+          dict(a=2, b=0, Class=2), dict(a=2, b=1, Class=3),
+          dict(a=3, b=0, Class=1), dict(a=3, b=1, Class=3)]
+
+
+
+  def aTree(self):
+    
+
   def smallTree(self):
     nodeZero = Node(0)
     node = Node()
@@ -89,10 +99,18 @@ class ID3test(unittest.TestCase):
     examples = [dict(a=1, b=0, Class=1), dict(a=1, b=0, Class=1), dict(a=0, b=1, Class=0),]
     expectedNode = Node()
     expectedNode.name = 'a'
+    expectedNode.isVisited = 1
     expectedNode.children[1] = Node(1)
     expectedNode.children[0] = Node(0)
     pruned = prune(root, examples)
     self.assertEqual(pruned, expectedNode)
+
+  def test_evaluate(self):
+    example = dict( a=1, b=0, Class=1)
+    (root, leaf) = self.smallTree()
+    self.assertEqual(evaluate(root, example), 0)
+
+
 
 if __name__ == '__main__':
   unittest.main()
