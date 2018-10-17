@@ -103,5 +103,4 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-plot.py
 ps1.pdf
